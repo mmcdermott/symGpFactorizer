@@ -1,0 +1,6 @@
+n: 2 lambdaSpace: [1, 1]
+
+B1 -> B2: 
+⎡0.707107 -0.707107⎤
+⎣0.707107 0.707107 ⎦
+# non-zero entries: 4 # total: 4

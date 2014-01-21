@@ -15,5 +15,8 @@
 #Matricies: 
 *.matrix
 
+#gedit tmp files: 
+*~
+
 #Final Products:
 cobFactorizer
