@@ -212,7 +212,6 @@ bool LambdaTableau::operator==(const LambdaTableau& rhs) const {
 LambdaTableau operator*(const SymGpElm& lhs, const LambdaTableau& rhs)
 {
   std::vector<int> newPos = rhs.pos();
-  //int i = 1;
   for (size_t i = 1; i <= rhs.pos().size(); ++i) {
     newPos[i-1] = rhs.pos()[lhs(i)-1];
   }

@@ -446,51 +446,49 @@ void findBasisDecomps(const string& filePath, const string& fileName, const int 
 }
 
 void test() {
-  Matrix pij = pi({6,1,1},{6,1,1},8);
-  //int tn = 10;
-  //vector<int> lambdaSpace = {tn-2,1,1};
+  //char * pEnd;
   //int n = 3;
-  ////vector<vec> Bfinal;
-  //vector<vector<int>> partitions = nPartitions(n);
-  //int nj = fLambda(partitions[2], n);
-  //cout << "repType = " << partitions[2] << endl;
-  //cout << "n! = " << factorial(n) << endl;
-  //int hookP = 1;
-  //int numRows = partitions[2].size();
-  //for (int row=1; row <= numRows; ++row) {
-  //  int rowL = partitions[2][row-1];
-  //  for (int i = 1; i <= rowL; ++i) {
-  //    int hookL = 1 + (rowL - i);
-  //    int height = 0;
-  //    for (int nextRow=row; nextRow < numRows; ++nextRow) {
-  //      if (partitions[2][nextRow] >= i) {
-  //        ++height;
-  //      } else {
-  //        break;
-  //      }
+  //string cycle = "(123)";
+  //vector<int> curMap = vector<int>();
+  //vector<int> imdMap = vector<int>();
+  //for (int i = 1; i <= n; ++i) {
+  //  curMap.push_back(i);
+  //  imdMap.push_back(i);
+  //}
+  //cout << "At line 457, curMap = " << curMap << endl;
+  //cout << "At line 458, imdMap = " << imdMap << endl;
+  //bool inCycle         = false;
+  //int curCycleLen      = 0;
+  //char c               = '(';
+  //for (size_t i = 0; i < cycle.length(); ++i) {
+  //  if (inCycle) {
+  //    c = cycle[i+1];
+  //    if (c == ')') {
+  //      inCycle = false;
+  //      cout << "cycle pre image = " << cycle << endl;
+  //      char domain = cycle[i];
+  //      char image  = cycle[i-curCycleLen];
+  //      cout << "image = " << image << endl;
+  //      cout << "image - '0'= " << image - '0' << endl;
+  //      cout << "domain = " << domain << endl;
+  //      cout << "domain - '0'= " << domain - '0' << endl;
+  //      //cout << "imdMap Pre = " << imdMap << endl;
+  //      imdMap[domain - '0' - 1] = curMap[image - '0' -1];
+  //      cout << "imdMap = " << imdMap << endl;
+  //      curCycleLen = 0;
+  //    } else {
+  //      char domain = cycle[i];
+  //      char image  = c;
+  //      imdMap[domain - '0' -1] = curMap[image - '0' -1];
+  //      ++curCycleLen;
   //    }
-  //    hookL += height;
-  //    hookP *= hookL;
+  //  } else if (cycle[i] == '(') {
+  //    inCycle = true;
+  //  } else {
+  //    curMap = imdMap;
   //  }
   //}
-  //cout << "hookP = " << hookP << endl;
-  //cout << "nj = " << nj << endl;
-  //for (vector<int> repType : partitions) {
-  //  int nj = fLambda(repType, n);
-  //  cout << "nj = " << nj << endl;
-  //  Matrix pij = pi(repType, lambdaSpace, n);
-  //  cout << "pij size: " << pij.rows() << "x" << pij.cols() << endl;
-  //  vector<vec> cj = cjSet(pij);
-  //  cout << "cj set size: " << cj.size() << endl;
-  //  for (vec vi : cj) {
-  //    Bfinal.push_back(vi);
-  //    for (size_t k = 2; k <= nj; ++k) {
-  //      Bfinal.push_back(P(repType, lambdaSpace, n, k)*vi);
-  //    }
-  //  }
-  //  cout << "Bfinal.size() = " << Bfinal.size() << endl;
-  //}
-  //cout << "Dim: " << Bfinal.size() << endl;
+  //cout << "curMap = " << curMap << endl;
 }
 
 int main(int argc, const char* argv[]) {

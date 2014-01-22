@@ -209,27 +209,8 @@ SymGpElm::SymGpElm(int n, string cycle)
   }
 
   bool inCycle         = false;
-  int curCycleLen = 0;
+  int curCycleLen      = 0;
   char c               = '(';
-  //for (int i = cycle.length() - 1; i > 0; --i) {
-  //  if (inCycle) {
-  //    c = cycle[i-1];
-  //    if (c == '(') {
-  //      inCycle = false;
-  //      char domain = cycle[i+curCycleLen];
-  //      char image  = cycle[i];
-  //      curMap[atoi(&domain)-1] = atoi(&image);
-  //      curCycleLen = 0;
-  //    } else {
-  //      char domain = c;
-  //      char image  = cycle[i];
-  //      curMap[atoi(&domain)-1] = atoi(&image);
-  //      ++curCycleLen;
-  //    }
-  //  } else if (cycle[i] == ')') {
-  //    inCycle = true;
-  //  }
-  //}
   for (size_t i = 0; i < cycle.length(); ++i) {
     if (inCycle) {
       c = cycle[i+1];
@@ -237,12 +218,12 @@ SymGpElm::SymGpElm(int n, string cycle)
         inCycle = false;
         char domain = cycle[i];
         char image  = cycle[i-curCycleLen];
-        imdMap[atoi(&domain)-1] = curMap[atoi(&image)-1];
+        imdMap[domain - '0' - 1] = curMap[image - '0' - 1];
         curCycleLen = 0;
       } else {
         char domain = cycle[i];
         char image  = c;
-        imdMap[atoi(&domain)-1] = curMap[atoi(&image)-1];
+        imdMap[domain - '0' - 1] = curMap[image - '0' - 1];
         ++curCycleLen;
       }
     } else if (cycle[i] == '(') {
@@ -270,7 +251,7 @@ int SymGpElm::operator()(const int k) const {
   if (k > this->n_) {
     return k;
   } else {
-    return (*this).map_[k-1];
+    return this->map_[k-1];
   }
 }
 
