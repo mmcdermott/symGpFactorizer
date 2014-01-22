@@ -33,9 +33,15 @@ vector<list<SymGpElm>> adjTransDecRec(int n) {
   }
   vector<list<SymGpElm>> Sn1 = adjTransDecRec(n-1);
   vector<list<SymGpElm>> Sn = Sn1;
-  stringstream ss;
-  ss << "(" << n-1 << n << ")";
-  SymGpElm adjTransN = SymGpElm(n, ss.str());
+  //stringstream ss;
+  //ss << "(" << n-1 << n << ")";
+  vector<int> adjTransMap;
+  for (int i = 1; i <= n-2; i++) 
+    adjTransMap.push_back(i);
+  adjTransMap.push_back(n);
+  adjTransMap.push_back(n-1);
+  SymGpElm adjTransN = SymGpElm(n, adjTransMap);//ss.str());
+
   list<SymGpElm> multiplier = {adjTransN};
   list<SymGpElm> Sn1ElmDecomp;
   Sn.push_back(multiplier);
@@ -46,11 +52,16 @@ vector<list<SymGpElm>> adjTransDecRec(int n) {
     Sn1ElmDecomp.insert(Sn1ElmDecomp.end(),multiplier.begin(),multiplier.end());
     Sn.push_back(Sn1ElmDecomp);
   }
-  stringstream temp;
+  //stringstream temp;
   for (int i = 2; i < n; ++i) {
-    ss.str("");
-    ss << "(" << n-i+1 << n-i << ")";
-    SymGpElm adjTransI = SymGpElm(n, ss.str());
+    //ss.str("");
+    //ss << "(" << n-i+1 << n-i << ")";
+    
+    adjTransMap[n-i+1] = n-i+2;
+    adjTransMap[n-i]   = n-i;
+    adjTransMap[n-i-1] = n-i+1;
+
+    SymGpElm adjTransI = SymGpElm(n, adjTransMap);//ss.str());
     multiplier.push_front(adjTransI);
     multiplier.push_back(adjTransI);
     Sn.push_back(multiplier);

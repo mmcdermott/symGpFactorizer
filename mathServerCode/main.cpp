@@ -242,6 +242,15 @@ int numCycleTypes(int n, const vector<int>& cycleType) {
 
 SymGpElm cycType(int n, const vector<int>& cycleType) {
   stringstream sigma;
+  vector<int> map;
+  for (size_t i = 2; i <= n+1; ++i)
+    map.push_back(i);
+  size_t sum = 0;
+  for (size_t i = 0; i < cycleType.size(); ++i) {
+    sum += cycleType[i];
+    map[sum-1] = i+1;
+  }
+  cout << "map = " << map << endl;
   int count = 1;
   for (int i : cycleType) {
     sigma << "(";
@@ -250,6 +259,7 @@ SymGpElm cycType(int n, const vector<int>& cycleType) {
     }
     sigma << ")";
   }
+  cout << "sigma = " << sigma.str() << endl;
   return (SymGpElm(n, sigma.str()));
 }
 
@@ -446,49 +456,9 @@ void findBasisDecomps(const string& filePath, const string& fileName, const int 
 }
 
 void test() {
-  //char * pEnd;
-  //int n = 3;
-  //string cycle = "(123)";
-  //vector<int> curMap = vector<int>();
-  //vector<int> imdMap = vector<int>();
-  //for (int i = 1; i <= n; ++i) {
-  //  curMap.push_back(i);
-  //  imdMap.push_back(i);
-  //}
-  //cout << "At line 457, curMap = " << curMap << endl;
-  //cout << "At line 458, imdMap = " << imdMap << endl;
-  //bool inCycle         = false;
-  //int curCycleLen      = 0;
-  //char c               = '(';
-  //for (size_t i = 0; i < cycle.length(); ++i) {
-  //  if (inCycle) {
-  //    c = cycle[i+1];
-  //    if (c == ')') {
-  //      inCycle = false;
-  //      cout << "cycle pre image = " << cycle << endl;
-  //      char domain = cycle[i];
-  //      char image  = cycle[i-curCycleLen];
-  //      cout << "image = " << image << endl;
-  //      cout << "image - '0'= " << image - '0' << endl;
-  //      cout << "domain = " << domain << endl;
-  //      cout << "domain - '0'= " << domain - '0' << endl;
-  //      //cout << "imdMap Pre = " << imdMap << endl;
-  //      imdMap[domain - '0' - 1] = curMap[image - '0' -1];
-  //      cout << "imdMap = " << imdMap << endl;
-  //      curCycleLen = 0;
-  //    } else {
-  //      char domain = cycle[i];
-  //      char image  = c;
-  //      imdMap[domain - '0' -1] = curMap[image - '0' -1];
-  //      ++curCycleLen;
-  //    }
-  //  } else if (cycle[i] == '(') {
-  //    inCycle = true;
-  //  } else {
-  //    curMap = imdMap;
-  //  }
-  //}
-  //cout << "curMap = " << curMap << endl;
+  int n = 3;
+  vector<list<SymGpElm>> Sn = adjTransDecList(n);
+  cout << Sn << endl;
 }
 
 int main(int argc, const char* argv[]) {
