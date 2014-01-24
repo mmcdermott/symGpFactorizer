@@ -205,8 +205,44 @@ std::vector<int> LambdaTableau::pos() const
   return pos_;
 }
 
+bool LambdaTableau::operator<(const LambdaTableau& rhs) const {
+  return ((*this) <= rhs) && ((*this) != rhs);
+}
+
+bool LambdaTableau::operator>(const LambdaTableau& rhs) const {
+  return !((*this) <= rhs);
+}
+
+bool LambdaTableau::operator<=(const LambdaTableau& rhs) const {
+  size_t n = this->pos_.size();
+  if (n != rhs.pos_.size())
+    return false;
+  for (size_t row = 1; row <= n; row++) {
+    size_t thisCount = 0;
+    size_t rhsCount = 0;
+    for (size_t i = 0; i < n; i++) {
+      if (this->pos_[i] == row)
+        thisCount++;
+      if (rhs.pos_[i] == row) 
+        rhsCount++;
+    }
+    if (thisCount > rhsCount) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool LambdaTableau::operator>=(const LambdaTableau& rhs) const {
+  return !((*this) < rhs);
+}
+
 bool LambdaTableau::operator==(const LambdaTableau& rhs) const {
   return (this->pos_ == rhs.pos_);
+}
+
+bool LambdaTableau::operator!=(const LambdaTableau& rhs) const {
+  return (this->pos_ != rhs.pos_);
 }
 
 LambdaTableau operator*(const SymGpElm& lhs, const LambdaTableau& rhs)

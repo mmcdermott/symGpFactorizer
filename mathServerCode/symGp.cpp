@@ -211,6 +211,7 @@ SymGpElm::SymGpElm(int n, vector<int> map)
 SymGpElm::SymGpElm(int n, string cycle)
   : n_(n)
 {
+  cout << endl << endl <<  "AAAAAGGGHHGHGHG DONT CALL ME IM BAD" << endl << endl;
   /* Constructs a SymGpElm out of a more friendly, string cycle input */
   vector<int> curMap = vector<int>();
   vector<int> imdMap = vector<int>();
