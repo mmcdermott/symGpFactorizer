@@ -9,7 +9,6 @@
 #include "tableau.hpp"
 #include "Matrix.hpp"
 #include "printUtils.cpp"
-//#include "boost/filesystem.hpp"
 using namespace std;
 
 bool canRead(ifstream& ifile) {
@@ -203,18 +202,18 @@ Matrix P(const vector<int>& lambdaRep, const vector<int>& lambdaSpace, int n, in
 
 Matrix pi(const vector<int>& lambdaRep, const vector<int>& lambdaSpace, int n) {
   stringstream fileName;
-  fileName << "pijs/" << n << "/";
-  createDir(fileName.str());
-  printVec(lambdaSpace, fileName);
-  createDir(fileName.str());
-  fileName << "/" ;
-  printVec(lambdaRep, fileName);
-  fileName << ".matrix";
-  ifstream ifile(fileName.str());
-  if (canRead(ifile))
-    return readFrom(ifile);
+  //fileName << "pijs/" << n << "/";
+  //createDir(fileName.str());
+  //printVec(lambdaSpace, fileName);
+  //createDir(fileName.str());
+  //fileName << "/" ;
+  //printVec(lambdaRep, fileName);
+  //fileName << ".matrix";
+  //ifstream ifile(fileName.str());
+  //if (canRead(ifile))
+  //  return readFrom(ifile);
   Matrix pd = Pd(lambdaRep, lambdaSpace, n, 1);
-  writeToFile(fileName.str(),pd);
+  //writeToFile(fileName.str(),pd);
   return pd;
 }
 
@@ -242,6 +241,15 @@ int numCycleTypes(int n, const vector<int>& cycleType) {
 
 SymGpElm cycType(int n, const vector<int>& cycleType) {
   stringstream sigma;
+  vector<int> map;
+  for (size_t i = 2; i <= n+1; ++i)
+    map.push_back(i);
+  size_t sum = 0;
+  for (size_t i = 0; i < cycleType.size(); ++i) {
+    sum += cycleType[i];
+    map[sum-1] = i+1;
+  }
+  cout << "map = " << map << endl;
   int count = 1;
   for (int i : cycleType) {
     sigma << "(";
@@ -250,6 +258,7 @@ SymGpElm cycType(int n, const vector<int>& cycleType) {
     }
     sigma << ")";
   }
+  cout << "sigma = " << sigma.str() << endl;
   return (SymGpElm(n, sigma.str()));
 }
 
@@ -297,7 +306,7 @@ vector<int> repDecomp(int n, vector<int> lambda) {
 vector<vec> cjSetGS(const Matrix& pij) {
   vector<vec> cjSet;
   Matrix grammedCols = pij.gramSchmidtCols();
-  for (size_t col = 0; col < grammedCols.cols(); ++col) {
+  for (int col = 0; col < grammedCols.cols(); ++col) {
     vec column = grammedCols.getCol(col);
     if (!isZero(column)) {
       cjSet.push_back(column);
@@ -323,6 +332,30 @@ vector<vec> cjSet(const Matrix& pij) {
   return cjSetGS(pij);
 }
 
+int sum(const vector<int>& lambda) {
+  int sum = 0;
+  for (int i : lambda) 
+    sum += i;
+  return sum;
+}
+
+bool strictlyDominates(const vector<int>& lambda1, const vector<int>& lambda2) {
+  int n1 = sum(lambda1);
+  int n2 = sum(lambda2);
+  if (n1 != n2) return false;
+  int left1 = min(n1,n2);
+  int left2 = left1;
+  
+  size_t lim = min(lambda1.size(), lambda2.size());
+  for (size_t i = 0; i < lim; i++) {
+    if (min(lambda1[i],left1) > min(lambda2[i],left2))
+      return true;
+    left1 -= min(lambda1[i],left1);
+    left2 -= min(lambda2[i],left2);
+  }
+  return false;
+}
+
 vector<vec> finalBasis(int n, const vector<int>& lambdaSpace) {
   vector<vec> Bfinal;
   vector<vector<int>> partitions = nPartitions(n);
@@ -330,6 +363,11 @@ vector<vec> finalBasis(int n, const vector<int>& lambdaSpace) {
   size_t total = partitions.size();
   string padding = "______________________________________";
   for (vector<int> repType : partitions) {
+    //if (strictlyDominates(lambdaSpace,repType)) {
+    //  //cout << "lambdaSpace = " << lambdaSpace << endl;
+    //  //cout << "repType = " << repType << endl;
+    //  continue;
+    //}
     int nj = fLambda(repType, n);
     cout << padding << "repType " << repType << "(" << count << " of " << total;
     cout << "). Computing pij (1 of "<< nj<<")" << padding;
@@ -351,44 +389,16 @@ vector<vec> finalBasis(int n, const vector<int>& lambdaSpace) {
           Bfinal.push_back(Pmat*vi);
         }
       }
+    } else {
+      //cout << endl << endl << "repType: " << repType << endl;
+      //cout << "lambdaSpace: " << lambdaSpace << endl;
+      //cout << "strictlyDominates(lambdaSpace, repType): ";
+      //cout << strictlyDominates(lambdaSpace,repType) << endl << endl;
     }
     count++;
   }
   return Bfinal;
 }
-
-//Matrix COBmatrix(int n, const vector<int>& lambdaSpace) {
-//  vector<vec> Bf = finalBasis(n, lambdaSpace);
-//  //TODO: correct B1TBf vs BfTB1
-//  size_t dim = Bf.size();
-//  Matrix B1TBf(dim,dim);
-//  for (size_t i = 0; i < dim; ++i) {
-//    B1TBf.setCol(i, Bf[i]);
-//  }
-//  B1TBf.roundZero();
-//  return B1TBf;
-//}
-//
-//Matrix COBmatrix(int nFrom, int nTo, const vector<int>& lambdaSpace, bool debug = false) {
-//  //TODO: correct B1TBf vs BfTB1
-//  Matrix BfTB1 = COBmatrix(nTo, lambdaSpace);
-//  Matrix B1TBf = BfTB1.inverse(); 
-//  if (debug) {
-//    cout << "B1 -> B" << nTo << ": " << endl;
-//    B1TBf.prettyPrint();
-//  }
-//  Matrix BFromTB1 = COBmatrix(nFrom, lambdaSpace);
-//  Matrix B1TBFrom = BFromTB1.inverse();
-//  if (debug) {
-//    cout << "B1 -> B" << nFrom << ": " << endl;
-//    B1TBFrom.prettyPrint();
-//    cout << "(B1 -> B" << nFrom << ")^{-1}: " << endl;
-//    BFromTB1.prettyPrint();
-//    cout << endl;
-//  }
-//  //TODO: Use better matrix multiplication algorithm. 
-//  return B1TBf*BFromTB1;
-//}
 
 Matrix COBmatrix(const vector<vec>& Bf) {
   size_t dim = Bf.size();
@@ -403,7 +413,6 @@ Matrix COBmatrix(const vector<vec>& Bf) {
 Matrix COBmatrix(const vector<vec>& BStart, const vector<vec>& BEnd) {
   //B1TBStart
   Matrix BStartTB1 = COBmatrix(BStart);
-  //Matrix B1TBStart = BStartTB1.inverse(); 
   //B1TBEnd
   Matrix BEndTB1 = COBmatrix(BEnd);
   Matrix B1TBEnd = BEndTB1.inverse();
@@ -439,58 +448,17 @@ void findBasisDecomps(const string& filePath, const string& fileName, const int 
 
     file << endl << "B" << i-1 << " -> B" << i << ": " << endl;
     cobMatrix.prettyPrintTo(file);
-    file << "# non-zero entries: " << cobMatrix.numNonzeroEntries();
-    file << " # total: " << cobMatrix.rows()*cobMatrix.cols() << endl;
+    file << "(# non-zero entries)/dimension = " << cobMatrix.numNonzeroEntries();
+    file << "/" << cobMatrix.rows() << " = ";
+    file << (1.0*cobMatrix.numNonzeroEntries())/cobMatrix.rows() << endl;
     //TODO: Maybe doing extra work here, don't need to write twice?
   }
 }
 
 void test() {
-  Matrix pij = pi({6,1,1},{6,1,1},8);
-  //int tn = 10;
-  //vector<int> lambdaSpace = {tn-2,1,1};
-  //int n = 3;
-  ////vector<vec> Bfinal;
-  //vector<vector<int>> partitions = nPartitions(n);
-  //int nj = fLambda(partitions[2], n);
-  //cout << "repType = " << partitions[2] << endl;
-  //cout << "n! = " << factorial(n) << endl;
-  //int hookP = 1;
-  //int numRows = partitions[2].size();
-  //for (int row=1; row <= numRows; ++row) {
-  //  int rowL = partitions[2][row-1];
-  //  for (int i = 1; i <= rowL; ++i) {
-  //    int hookL = 1 + (rowL - i);
-  //    int height = 0;
-  //    for (int nextRow=row; nextRow < numRows; ++nextRow) {
-  //      if (partitions[2][nextRow] >= i) {
-  //        ++height;
-  //      } else {
-  //        break;
-  //      }
-  //    }
-  //    hookL += height;
-  //    hookP *= hookL;
-  //  }
-  //}
-  //cout << "hookP = " << hookP << endl;
-  //cout << "nj = " << nj << endl;
-  //for (vector<int> repType : partitions) {
-  //  int nj = fLambda(repType, n);
-  //  cout << "nj = " << nj << endl;
-  //  Matrix pij = pi(repType, lambdaSpace, n);
-  //  cout << "pij size: " << pij.rows() << "x" << pij.cols() << endl;
-  //  vector<vec> cj = cjSet(pij);
-  //  cout << "cj set size: " << cj.size() << endl;
-  //  for (vec vi : cj) {
-  //    Bfinal.push_back(vi);
-  //    for (size_t k = 2; k <= nj; ++k) {
-  //      Bfinal.push_back(P(repType, lambdaSpace, n, k)*vi);
-  //    }
-  //  }
-  //  cout << "Bfinal.size() = " << Bfinal.size() << endl;
-  //}
-  //cout << "Dim: " << Bfinal.size() << endl;
+  int n = 3;
+  vector<list<SymGpElm>> Sn = adjTransDecList(n);
+  cout << Sn << endl;
 }
 
 int main(int argc, const char* argv[]) {
@@ -533,5 +501,6 @@ int main(int argc, const char* argv[]) {
   const string fileName = ss.str();
   //test();
   findBasisDecomps(filePath, fileName, n, lambdaSpace);
+  cout << endl;
   return 0;
 }

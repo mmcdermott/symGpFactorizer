@@ -56,7 +56,17 @@ class LambdaTableau {
 
     std::vector<int> pos() const;
 
+    bool operator<(const LambdaTableau& rhs) const;
+
+    bool operator>(const LambdaTableau& rhs) const;
+
+    bool operator<=(const LambdaTableau& rhs) const;
+
+    bool operator>=(const LambdaTableau& rhs) const;
+
     bool operator==(const LambdaTableau& rhs) const;
+
+    bool operator!=(const LambdaTableau& rhs) const;
   private: 
     std::vector<int> pos_;
 };

@@ -33,9 +33,15 @@ vector<list<SymGpElm>> adjTransDecRec(int n) {
   }
   vector<list<SymGpElm>> Sn1 = adjTransDecRec(n-1);
   vector<list<SymGpElm>> Sn = Sn1;
-  stringstream ss;
-  ss << "(" << n-1 << n << ")";
-  SymGpElm adjTransN = SymGpElm(n, ss.str());
+  //stringstream ss;
+  //ss << "(" << n-1 << n << ")";
+  vector<int> adjTransMap;
+  for (int i = 1; i <= n-2; i++) 
+    adjTransMap.push_back(i);
+  adjTransMap.push_back(n);
+  adjTransMap.push_back(n-1);
+  SymGpElm adjTransN = SymGpElm(n, adjTransMap);//ss.str());
+
   list<SymGpElm> multiplier = {adjTransN};
   list<SymGpElm> Sn1ElmDecomp;
   Sn.push_back(multiplier);
@@ -46,11 +52,16 @@ vector<list<SymGpElm>> adjTransDecRec(int n) {
     Sn1ElmDecomp.insert(Sn1ElmDecomp.end(),multiplier.begin(),multiplier.end());
     Sn.push_back(Sn1ElmDecomp);
   }
-  stringstream temp;
+  //stringstream temp;
   for (int i = 2; i < n; ++i) {
-    ss.str("");
-    ss << "(" << n-i+1 << n-i << ")";
-    SymGpElm adjTransI = SymGpElm(n, ss.str());
+    //ss.str("");
+    //ss << "(" << n-i+1 << n-i << ")";
+    
+    adjTransMap[n-i+1] = n-i+2;
+    adjTransMap[n-i]   = n-i;
+    adjTransMap[n-i-1] = n-i+1;
+
+    SymGpElm adjTransI = SymGpElm(n, adjTransMap);//ss.str());
     multiplier.push_front(adjTransI);
     multiplier.push_back(adjTransI);
     Sn.push_back(multiplier);
@@ -200,6 +211,7 @@ SymGpElm::SymGpElm(int n, vector<int> map)
 SymGpElm::SymGpElm(int n, string cycle)
   : n_(n)
 {
+  cout << endl << endl <<  "AAAAAGGGHHGHGHG DONT CALL ME IM BAD" << endl << endl;
   /* Constructs a SymGpElm out of a more friendly, string cycle input */
   vector<int> curMap = vector<int>();
   vector<int> imdMap = vector<int>();
@@ -209,27 +221,8 @@ SymGpElm::SymGpElm(int n, string cycle)
   }
 
   bool inCycle         = false;
-  int curCycleLen = 0;
+  int curCycleLen      = 0;
   char c               = '(';
-  //for (int i = cycle.length() - 1; i > 0; --i) {
-  //  if (inCycle) {
-  //    c = cycle[i-1];
-  //    if (c == '(') {
-  //      inCycle = false;
-  //      char domain = cycle[i+curCycleLen];
-  //      char image  = cycle[i];
-  //      curMap[atoi(&domain)-1] = atoi(&image);
-  //      curCycleLen = 0;
-  //    } else {
-  //      char domain = c;
-  //      char image  = cycle[i];
-  //      curMap[atoi(&domain)-1] = atoi(&image);
-  //      ++curCycleLen;
-  //    }
-  //  } else if (cycle[i] == ')') {
-  //    inCycle = true;
-  //  }
-  //}
   for (size_t i = 0; i < cycle.length(); ++i) {
     if (inCycle) {
       c = cycle[i+1];
@@ -237,12 +230,12 @@ SymGpElm::SymGpElm(int n, string cycle)
         inCycle = false;
         char domain = cycle[i];
         char image  = cycle[i-curCycleLen];
-        imdMap[atoi(&domain)-1] = curMap[atoi(&image)-1];
+        imdMap[domain - '0' - 1] = curMap[image - '0' - 1];
         curCycleLen = 0;
       } else {
         char domain = cycle[i];
         char image  = c;
-        imdMap[atoi(&domain)-1] = curMap[atoi(&image)-1];
+        imdMap[domain - '0' - 1] = curMap[image - '0' - 1];
         ++curCycleLen;
       }
     } else if (cycle[i] == '(') {
@@ -270,7 +263,7 @@ int SymGpElm::operator()(const int k) const {
   if (k > this->n_) {
     return k;
   } else {
-    return (*this).map_[k-1];
+    return this->map_[k-1];
   }
 }
 
