@@ -11,6 +11,18 @@
 #include "printUtils.cpp"
 using namespace std;
 
+void permuteCols(Matrix& m, const SymGpElm& sigma) {
+  /*sigma.n() <= m.cols();
+   */
+  vector<vec> cols;
+  for (size_t i = 0; i < m.cols(); ++i) {
+    cols.push_back(m.getCol(i));
+  }
+  for (size_t i = 0; i < sigma.n(); ++i) {
+    m.setCol(sigma(i+1)-1, cols[i]);
+  }
+}
+
 bool canRead(ifstream& ifile) {
   if (ifile) {
     if ((ifile.peek() != ifstream::traits_type::eof())) {
@@ -339,21 +351,61 @@ int sum(const vector<int>& lambda) {
   return sum;
 }
 
-bool strictlyDominates(const vector<int>& lambda1, const vector<int>& lambda2) {
-  int n1 = sum(lambda1);
-  int n2 = sum(lambda2);
-  if (n1 != n2) return false;
-  int left1 = min(n1,n2);
-  int left2 = left1;
-  
-  size_t lim = min(lambda1.size(), lambda2.size());
-  for (size_t i = 0; i < lim; i++) {
-    if (min(lambda1[i],left1) > min(lambda2[i],left2))
-      return true;
-    left1 -= min(lambda1[i],left1);
-    left2 -= min(lambda2[i],left2);
+bool contributes(const vector<int>& irrRep, const vector<int>& lambdaSpace) {
+  //Note: This presumes that irrRep is on at most \sum(lambdaSpace) elements.
+  //Note: This is certainly necessary, but not sufficient. However, its fast
+  //      to code and compute and has some positive benefit. 
+  //TODO: Make version of nPartitions(n) that takes lambdaSpace and only 
+  //      returns those partitions that will contribute. 
+  return (irrRep.size() <= lambdaSpace.size());
+}
+
+vector<vector<vec>> allPermutationsBases(int n, const vector<int>& lambdaSpace) {
+  vector<vec> Bfinal;
+  vector<vector<int>> partitions = nPartitions(n);
+  size_t count = 1;
+  size_t total = partitions.size();
+  string padding = "______________________________________";
+  for (vector<int> repType : partitions) {
+    if (!contributes(repType, lambdaSpace)) {
+      //cout << "lambdaSpace = " << lambdaSpace << endl;
+      //cout << "repType = " << repType << endl;
+      continue;
+    }
+    int nj = fLambda(repType, n);
+    cout << padding << "repType " << repType << "(" << count << " of " << total;
+    cout << "). Computing pij (1 of "<< nj<<")" << padding;
+    cout << "\r";
+    cout.flush();
+    Matrix pij = pi(repType, lambdaSpace, n);
+    cout << padding << "repType " << repType << "(" << count << " of " << total;
+    cout << "). Computed pij (1 of "<< nj<<")" << padding;
+    cout << "\r";
+    cout.flush();
+    vector<vec> cj = cjSet(pij);
+    if (!cj.empty()) {
+      for (vec vi : cj) {
+        Bfinal.push_back(vi);
+      }
+      for (size_t k = 2; k <= nj; ++k) {
+        cout << padding << "repType " << repType << "(" << count << " of " << total;
+        cout << "). Computing Pmat (" << k << " of "<< nj<<")" << padding;
+        cout << "\r";
+        cout.flush();
+        Matrix Pmat = P(repType, lambdaSpace, n, k);
+        for (vec vi: cj) {
+          Bfinal.push_back(Pmat*vi);
+        }
+      }
+    } else {
+      cout << endl << endl << "repType: " << repType << endl;
+      cout << "lambdaSpace: " << lambdaSpace << endl;
+      cout << "contributes(repType,lambdaSpace): ";
+      cout << contributes(repType, lambdaSpace) << endl << endl;
+    }
+    count++;
   }
-  return false;
+  return {Bfinal};
 }
 
 vector<vec> finalBasis(int n, const vector<int>& lambdaSpace) {
@@ -363,11 +415,11 @@ vector<vec> finalBasis(int n, const vector<int>& lambdaSpace) {
   size_t total = partitions.size();
   string padding = "______________________________________";
   for (vector<int> repType : partitions) {
-    //if (strictlyDominates(lambdaSpace,repType)) {
-    //  //cout << "lambdaSpace = " << lambdaSpace << endl;
-    //  //cout << "repType = " << repType << endl;
-    //  continue;
-    //}
+    if (!contributes(repType, lambdaSpace)) {
+      //cout << "lambdaSpace = " << lambdaSpace << endl;
+      //cout << "repType = " << repType << endl;
+      continue;
+    }
     int nj = fLambda(repType, n);
     cout << padding << "repType " << repType << "(" << count << " of " << total;
     cout << "). Computing pij (1 of "<< nj<<")" << padding;
@@ -390,10 +442,10 @@ vector<vec> finalBasis(int n, const vector<int>& lambdaSpace) {
         }
       }
     } else {
-      //cout << endl << endl << "repType: " << repType << endl;
-      //cout << "lambdaSpace: " << lambdaSpace << endl;
-      //cout << "strictlyDominates(lambdaSpace, repType): ";
-      //cout << strictlyDominates(lambdaSpace,repType) << endl << endl;
+      cout << endl << endl << "repType: " << repType << endl;
+      cout << "lambdaSpace: " << lambdaSpace << endl;
+      cout << "contributes(repType,lambdaSpace): ";
+      cout << contributes(repType, lambdaSpace) << endl << endl;
     }
     count++;
   }
@@ -455,10 +507,50 @@ void findBasisDecomps(const string& filePath, const string& fileName, const int 
   }
 }
 
+void findAllPermutedBases(const string& filePath, const string& fileName, const int n, const vector<int>& lambdaSpace) {
+  /* In this function, we find all possible finalBases that arise via changing
+   * the ordering of Gram Schmidt during computation for all $1 < k \le n$. 
+   */
+  //stringstream totalFileName;
+  //totalFileName << filePath << "/" << fileName;
+  //ofstream file(totalFileName.str());
+  //file << "n: " << n << " lambdaSpace: " << lambdaSpace << endl;
+  vector<vector<vec>> bases;
+  for (int i = 2; i <= n; ++i) {
+    bases = allPermutationsBases(i, lambdaSpace);
+    for (vector<vec> basis : bases) {
+      Matrix cobMatrix = COBmatrix(basis);
+    }
+    //stringstream cobFileName;
+    //cobFileName << "S" << i-1 << "->S" << i << ".matrix";
+    //stringstream cobPath;
+    //cobPath << filePath << "/" << cobFileName.str();
+    //cout << "cobPath.string: " << cobPath.str() << endl;
+    //ifstream iCobFile(cobPath.str());
+    //if (iCobFile) {
+    //  cout << "iCobFile found!" << endl;
+    //  cobMatrix = readFrom(iCobFile);
+    //} else {
+
+    //writeToFile(cobPath.str(), cobMatrix);
+    //}
+    //
+
+    //file << endl << "B" << i-1 << " -> B" << i << ": " << endl;
+    //cobMatrix.prettyPrintTo(file);
+    //file << "(# non-zero entries)/dimension = " << cobMatrix.numNonzeroEntries();
+    //file << "/" << cobMatrix.rows() << " = ";
+    //file << (1.0*cobMatrix.numNonzeroEntries())/cobMatrix.rows() << endl;
+  }
+}
+
 void test() {
   int n = 3;
-  vector<list<SymGpElm>> Sn = adjTransDecList(n);
-  cout << Sn << endl;
+  Matrix testM(n);
+  testM.prettyPrint();
+  SymGpElm sigma(3, "(123)");
+  permuteCols(testM, sigma);
+  testM.prettyPrint();
 }
 
 int main(int argc, const char* argv[]) {
@@ -499,8 +591,9 @@ int main(int argc, const char* argv[]) {
   ss.str("");
   ss << "matricies-S" << n << ".txt";
   const string fileName = ss.str();
-  //test();
-  findBasisDecomps(filePath, fileName, n, lambdaSpace);
+  test();
+  //findBasisDecomps(filePath, fileName, n, lambdaSpace);
+  //findAllPermutedBases(filePath, fileName, n, lambdaSpace);
   cout << endl;
   return 0;
 }
