@@ -350,6 +350,15 @@ void Matrix::roundZero() {
         (*this)(i,j) = 0;
 }
 
+//Comparison Operators: 
+bool Matrix::operator==(const Matrix& rhs) const {
+  return (this->data_ == rhs.data_);
+}
+
+bool Matrix::operator!=(const Matrix& rhs) const {
+  return !((*this) == rhs);
+}
+
 //Silly Wrappers: TODO: Make these not needed. 
 size_t Matrix::size1() const {
   return this->rows();

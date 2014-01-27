@@ -76,6 +76,10 @@ class Matrix {
     //Rounding: 
     void roundZero();
 
+    //Comparison Operators: 
+    bool operator==(const Matrix& rhs) const;
+    bool operator!=(const Matrix& rhs) const;
+
     //Silly Wrappers: TODO: Make these not needed.
     size_t size1() const;
     size_t size2() const;

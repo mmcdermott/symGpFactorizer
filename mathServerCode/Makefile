@@ -1,5 +1,5 @@
 CXX = /shared/local/sw/gcc/gcc/bin/g++
-WARNINGFLAGS = #-pedantic -Wall
+WARNINGFLAGS = -pedantic -Wall
 LINKERFLAGS = -Wl,-rpath,/shared/local/sw/gcc/gcc/lib64
 CXXFLAGS = -gdwarf-2 -gstrict-dwarf -std=c++11 -g $(WARNINGFLAGS) $(LINKERFLAGS)
 

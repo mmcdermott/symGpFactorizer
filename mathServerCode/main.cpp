@@ -5,15 +5,17 @@
 #include <sstream>
 #include <algorithm>
 #include <math.h>
+#include <utility>
 #include "symGp.hpp"
 #include "tableau.hpp"
 #include "Matrix.hpp"
 #include "printUtils.cpp"
 using namespace std;
 
-void permuteCols(Matrix& m, const SymGpElm& sigma) {
+bool permuteCols(Matrix& m, const SymGpElm& sigma) {
   /*sigma.n() <= m.cols();
    */
+  Matrix mCopy = m;
   vector<vec> cols;
   for (size_t i = 0; i < m.cols(); ++i) {
     cols.push_back(m.getCol(i));
@@ -21,6 +23,7 @@ void permuteCols(Matrix& m, const SymGpElm& sigma) {
   for (size_t i = 0; i < sigma.n(); ++i) {
     m.setCol(sigma(i+1)-1, cols[i]);
   }
+  return (mCopy != m);
 }
 
 bool canRead(ifstream& ifile) {
@@ -344,6 +347,34 @@ vector<vec> cjSet(const Matrix& pij) {
   return cjSetGS(pij);
 }
 
+pair<vector<vector<vec>>, vector<SymGpElm>> cjSetPermuted(Matrix pij, const vector<int>& repType, int nj) {
+  int n = pij.cols();
+  int count = 1;
+  Matrix pijCopy = pij;
+  vector<vector<vec>> cjSets;
+  vector<SymGpElm> permutations;
+  vector<list<SymGpElm>> Sn = adjTransDecList(n);
+  for (list<SymGpElm> sigmaDec : Sn) {
+    SymGpElm sigma = prod(sigmaDec);
+
+    //string padding = "______________________________________";
+    //cout << padding << "repType " << repType << "(" << count << " of " << total;
+    //cout << "). Computed pij (1 of "<< nj<<") "; 
+    //cout << "Computing Permutation set (" << count << " of " << factorial(n);
+    //cout << ")" << padding << "\r";
+    //cout.flush();
+
+    bool meaningful = permuteCols(pij, sigma);
+    if (meaningful) {
+      permutations.push_back(sigma);
+      vector<vec> cjs = cjSet(pij);
+      cjSets.push_back(cjs);
+    }
+    ++count;
+  }
+  return {cjSets, permutations};
+}
+
 int sum(const vector<int>& lambda) {
   int sum = 0;
   for (int i : lambda) 
@@ -360,12 +391,13 @@ bool contributes(const vector<int>& irrRep, const vector<int>& lambdaSpace) {
   return (irrRep.size() <= lambdaSpace.size());
 }
 
-vector<vector<vec>> allPermutationsBases(int n, const vector<int>& lambdaSpace) {
-  vector<vec> Bfinal;
+pair<vector<vector<vec>>, vector<vector<SymGpElm>>> allPermutationsBases(int n, const vector<int>& lambdaSpace) {
+  vector<vector<vec>> bases;
+  vector<vector<SymGpElm>> permutations;
   vector<vector<int>> partitions = nPartitions(n);
   size_t count = 1;
   size_t total = partitions.size();
-  string padding = "______________________________________";
+  //string padding = "______________________________________";
   for (vector<int> repType : partitions) {
     if (!contributes(repType, lambdaSpace)) {
       //cout << "lambdaSpace = " << lambdaSpace << endl;
@@ -373,39 +405,35 @@ vector<vector<vec>> allPermutationsBases(int n, const vector<int>& lambdaSpace) 
       continue;
     }
     int nj = fLambda(repType, n);
-    cout << padding << "repType " << repType << "(" << count << " of " << total;
-    cout << "). Computing pij (1 of "<< nj<<")" << padding;
-    cout << "\r";
-    cout.flush();
+    //cout << padding << "repType " << repType << "(" << count << " of " << total;
+    //cout << "). Computing pij (1 of "<< nj<<")" << padding;
+    //cout << "\r";
+    //cout.flush();
     Matrix pij = pi(repType, lambdaSpace, n);
-    cout << padding << "repType " << repType << "(" << count << " of " << total;
-    cout << "). Computed pij (1 of "<< nj<<")" << padding;
-    cout << "\r";
-    cout.flush();
-    vector<vec> cj = cjSet(pij);
-    if (!cj.empty()) {
+    pair<vector<vector<vec>>, vector<SymGpElm>> cjPermuted = cjSetPermuted(pij, repType, nj);
+    permutations.push_back(cjPermuted.second);
+    vector<Matrix> Pmats;
+    for (size_t k = 2; k <= nj; ++k) {
+      //cout << padding << "repType " << repType << "(" << count << " of " << total;
+      //cout << "). Computing Pmat (" << k << " of "<< nj<<")" << padding;
+      //cout << "\r";
+      //cout.flush();
+      Pmats.push_back(P(repType, lambdaSpace, n, k));
+    }
+    vector<vector<vec>> cjs = cjPermuted.first;
+    for (vector<vec> cj : cjs) {
+      vector<vec> Bfinal;
       for (vec vi : cj) {
         Bfinal.push_back(vi);
-      }
-      for (size_t k = 2; k <= nj; ++k) {
-        cout << padding << "repType " << repType << "(" << count << " of " << total;
-        cout << "). Computing Pmat (" << k << " of "<< nj<<")" << padding;
-        cout << "\r";
-        cout.flush();
-        Matrix Pmat = P(repType, lambdaSpace, n, k);
-        for (vec vi: cj) {
-          Bfinal.push_back(Pmat*vi);
+        for (size_t k = 0; k <= nj-2; ++k) {
+          Bfinal.push_back(Pmats[k]*vi);
         }
       }
-    } else {
-      cout << endl << endl << "repType: " << repType << endl;
-      cout << "lambdaSpace: " << lambdaSpace << endl;
-      cout << "contributes(repType,lambdaSpace): ";
-      cout << contributes(repType, lambdaSpace) << endl << endl;
+      bases.push_back(Bfinal);
     }
     count++;
   }
-  return {Bfinal};
+  return {bases,permutations};
 }
 
 vector<vec> finalBasis(int n, const vector<int>& lambdaSpace) {
@@ -507,40 +535,30 @@ void findBasisDecomps(const string& filePath, const string& fileName, const int 
   }
 }
 
-void findAllPermutedBases(const string& filePath, const string& fileName, const int n, const vector<int>& lambdaSpace) {
+void findAllPermutedBases(const string& filePath, const int n, const vector<int>& lambdaSpace) {
   /* In this function, we find all possible finalBases that arise via changing
    * the ordering of Gram Schmidt during computation for all $1 < k \le n$. 
    */
-  //stringstream totalFileName;
-  //totalFileName << filePath << "/" << fileName;
-  //ofstream file(totalFileName.str());
-  //file << "n: " << n << " lambdaSpace: " << lambdaSpace << endl;
+  stringstream totalFileName;
+  totalFileName << filePath << "/";
   vector<vector<vec>> bases;
+  vector<vector<SymGpElm>> permutations;
+  pair<vector<vector<vec>>,vector<vector<SymGpElm>>> res;
   for (int i = 2; i <= n; ++i) {
-    bases = allPermutationsBases(i, lambdaSpace);
-    for (vector<vec> basis : bases) {
+    res = allPermutationsBases(i, lambdaSpace);
+    bases = res.first;
+    permutations = res.second;
+    totalFileName << "S" << i << "/";
+    createDir(totalFileName.str());
+    for (size_t j = 0; j < bases.size(); ++j) {
+      totalFileName << "Basis" << j+1;
+      vector<vec> basis = bases[j];
+      vector<SymGpElm> permSet = permutations[j];
       Matrix cobMatrix = COBmatrix(basis);
+      ofstream oBasisFile(totalFileName.str());
+      printVec(permSet, oBasisFile);
+      writeTo(oBasisFile, cobMatrix);
     }
-    //stringstream cobFileName;
-    //cobFileName << "S" << i-1 << "->S" << i << ".matrix";
-    //stringstream cobPath;
-    //cobPath << filePath << "/" << cobFileName.str();
-    //cout << "cobPath.string: " << cobPath.str() << endl;
-    //ifstream iCobFile(cobPath.str());
-    //if (iCobFile) {
-    //  cout << "iCobFile found!" << endl;
-    //  cobMatrix = readFrom(iCobFile);
-    //} else {
-
-    //writeToFile(cobPath.str(), cobMatrix);
-    //}
-    //
-
-    //file << endl << "B" << i-1 << " -> B" << i << ": " << endl;
-    //cobMatrix.prettyPrintTo(file);
-    //file << "(# non-zero entries)/dimension = " << cobMatrix.numNonzeroEntries();
-    //file << "/" << cobMatrix.rows() << " = ";
-    //file << (1.0*cobMatrix.numNonzeroEntries())/cobMatrix.rows() << endl;
   }
 }
 
@@ -549,7 +567,7 @@ void test() {
   Matrix testM(n);
   testM.prettyPrint();
   SymGpElm sigma(3, "(123)");
-  permuteCols(testM, sigma);
+  bool hi = permuteCols(testM, sigma);
   testM.prettyPrint();
 }
 
@@ -591,9 +609,9 @@ int main(int argc, const char* argv[]) {
   ss.str("");
   ss << "matricies-S" << n << ".txt";
   const string fileName = ss.str();
-  test();
+  //test();
   //findBasisDecomps(filePath, fileName, n, lambdaSpace);
-  //findAllPermutedBases(filePath, fileName, n, lambdaSpace);
+  findAllPermutedBases(filePath,  n, lambdaSpace);
   cout << endl;
   return 0;
 }
