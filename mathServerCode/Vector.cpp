@@ -80,38 +80,3 @@ void normalize(vec& v) {
   for (vec::iterator it=v.begin(); it != v.end(); ++it) 
     (*it) = (*it)/mag;
 }
-
-// These don't compile and aren't necessary. 
-//
-//void writeTo(std::ostream& out, const vec& v) {
-//  out << v.size() << "\n";
-//  for (size_t i = 0; i < v.size(); ++i)
-//    out << v[i] << " ";
-//}
-//
-//vec readVecFrom(std::istream& in) {
-//  std::string line;
-//  getline(in,line);
-//  std::istringstream dim(line);
-//  size_t size;
-//  dim >> size;
-//  vec v;
-//  for (size_t i = 0; i < size; ++i) {
-//    size_t elm;
-//    in >> elm;
-//    v.push_back(elm);
-//  }
-//  return v;
-//}
-//
-//void writeToFile(const std::string& fileName, const vec& v) {
-//  std::ofstream file;
-//  file.open(fileName);
-//  writeTo(file, v);
-//}
-//
-//vec readVecFromFile(const std::string& fileName) {
-//  std::ifstream file;
-//  file.open(fileName);
-//  return readVecFrom(file);
-//}

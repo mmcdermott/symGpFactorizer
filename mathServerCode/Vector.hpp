@@ -30,13 +30,5 @@ bool isZero(const vec& v);
 vec proj(const vec& base, const vec& v);
 
 void normalize(vec& vec);
-//
-//void writeTo(std::ostream& out, const vec& v);
-//
-//vec readVecFrom(std::istream& in);
-//
-//void writeToFile(const std::string& fileName, const vec& v);
-//
-//vec readVecFromFile(const std::string& fileName);
-//
+
 #endif
