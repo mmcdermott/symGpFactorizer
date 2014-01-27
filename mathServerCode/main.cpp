@@ -25,10 +25,6 @@ bool canRead(ifstream& ifile) {
   //return (ifile && (ifile.peek() != ifstream::traits_type::eof()));
 }
 
-//void createDir(const path& dir) {
-//  if (!boost::filesystem::exists(dir)) boost::filesystem::create_directory(dir);
-//}
-
 void createDir(const string& dir) {
   mkdir(dir.c_str(), 0755);
 }
