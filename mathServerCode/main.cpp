@@ -139,15 +139,15 @@ vector<vector<Matrix>> irrReps(int n) {
 }
 
 Matrix D(const SymGpElm& s, const vector<int>& lambdaSpace, vector<LambdaTableau>& basis) {
-  stringstream fileName;
-  fileName << "tabloidReps/";
-  printVec(lambdaSpace, fileName);
-  createDir(fileName.str());
-  fileName << "/" << s.toStringExact() << ".matrix";
-  ifstream ifile(fileName.str());
-  if (canRead(ifile)) {
-    return readFrom(ifile);
-  }
+  //stringstream fileName;
+  //fileName << "tabloidReps/";
+  //printVec(lambdaSpace, fileName);
+  //createDir(fileName.str());
+  //fileName << "/" << s.toStringExact() << ".matrix";
+  //ifstream ifile(fileName.str());
+  //if (canRead(ifile)) {
+  //  return readFrom(ifile);
+  //}
   int n = basis.size(); 
   Matrix Ds(n,n);
   //TODO: Maybe not use linear search here? 
@@ -158,26 +158,26 @@ Matrix D(const SymGpElm& s, const vector<int>& lambdaSpace, vector<LambdaTableau
         Ds(i,j) = 1;
   }
   Ds.roundZero();
-  writeToFile(fileName.str(), Ds);
+  //writeToFile(fileName.str(), Ds);
   return Ds;
 }
 
-Matrix Pd(const vector<int>& lambdaRep, const vector<int>& lambdaSpace, int n, int mu) {
+Matrix Pd(const vector<int>& lambdaRep, const vector<int>& lambdaSpace, int n, int mu, const SymGpElm& sigmaPermute) {
   vector<list<SymGpElm>> Sn = adjTransDecList(n);
   size_t total = Sn.size();
   size_t count = 1;
   //Takes nontrivial time \/\/
-  vector<LambdaTableau> basis = CXlambdaBasis(lambdaSpace);
+  vector<LambdaTableau> basis = CXlambdaBasisPermuted(lambdaSpace,sigmaPermute);
   unsigned dim = basis.size();
   Matrix sum(dim, dim);
   for (list<SymGpElm> s : Sn) {
     //Progress Bar: 
-    cout << "SymGpElm " << count << " of " << total << "|______________\r";
-    cout.flush();
+    //cout << "SymGpElm " << count << " of " << total << "|______________\r";
+    //cout.flush();
     SymGpElm sigma = prod(s);
     Matrix Ds = D(sigma, lambdaSpace, basis);
-    cout << "SymGpElm " << count << " of " << total << "|Ds computed___\r";
-    cout.flush();
+    //cout << "SymGpElm " << count << " of " << total << "|Ds computed___\r";
+    //cout.flush();
     reverse(s.begin(), s.end()); //Computing s^{-1}
     Matrix dLam = computeMatrix(s, lambdaRep);
     cout << "SymGpElm " << count << " of " << total << "|dLam computed_\r";
@@ -189,15 +189,15 @@ Matrix Pd(const vector<int>& lambdaRep, const vector<int>& lambdaSpace, int n, i
   return sum;
 }
 
-Matrix P(const vector<int>& lambdaRep, const vector<int>& lambdaSpace, int n, int mu) {
+Matrix P(const vector<int>& lambdaRep, const vector<int>& lambdaSpace, int n, int mu, const SymGpElm& sigmaPermute) {
   // if g = fac(n) and nj = fLambda(lambdaRep, n), then nj/g =
   // 1/hookProduct(lambdaRep)
   double hookP = hookProduct(lambdaRep);
-  return (1/hookP)*Pd(lambdaRep, lambdaSpace, n, mu);
+  return (1/hookP)*Pd(lambdaRep, lambdaSpace, n, mu, sigmaPermute);
 }
 
-Matrix pi(const vector<int>& lambdaRep, const vector<int>& lambdaSpace, int n) {
-  stringstream fileName;
+Matrix pi(const vector<int>& lambdaRep, const vector<int>& lambdaSpace, int n, const SymGpElm& sigmaPermute) {
+  //stringstream fileName;
   //fileName << "pijs/" << n << "/";
   //createDir(fileName.str());
   //printVec(lambdaSpace, fileName);
@@ -208,7 +208,7 @@ Matrix pi(const vector<int>& lambdaRep, const vector<int>& lambdaSpace, int n) {
   //ifstream ifile(fileName.str());
   //if (canRead(ifile))
   //  return readFrom(ifile);
-  Matrix pd = Pd(lambdaRep, lambdaSpace, n, 1);
+  Matrix pd = Pd(lambdaRep, lambdaSpace, n, 1, sigmaPermute);
   //writeToFile(fileName.str(),pd);
   return pd;
 }
@@ -352,7 +352,27 @@ bool strictlyDominates(const vector<int>& lambda1, const vector<int>& lambda2) {
   return false;
 }
 
-vector<vec> finalBasis(int n, const vector<int>& lambdaSpace) {
+vector<vec> stdBasis(const vector<int>& lambdaSpace) {
+  int n = 0;
+  for (size_t row = 0; row < lambdaSpace.size(); row++) {
+    n += lambdaSpace[row];
+  }
+  int numTabloids = factorial(n);
+  for (size_t row = 0; row < lambdaSpace.size(); row++) {
+    numTabloids = numTabloids/factorial(lambdaSpace[row]);
+  }
+  Matrix I(numTabloids);
+  vector<vec> basis;
+  for (size_t i = 0; i < numTabloids; i++) {
+    basis.push_back(I.getCol(i));
+  }
+  return basis;
+}
+
+vector<vec> finalBasis(int n, const vector<int>& lambdaSpace, const SymGpElm& sigmaPermute) {
+  if (n == 1) {
+    return stdBasis(lambdaSpace);
+  }
   vector<vec> Bfinal;
   vector<vector<int>> partitions = nPartitions(n);
   size_t count = 1;
@@ -369,7 +389,7 @@ vector<vec> finalBasis(int n, const vector<int>& lambdaSpace) {
     cout << "). Computing pij (1 of "<< nj<<")" << padding;
     cout << "\r";
     cout.flush();
-    Matrix pij = pi(repType, lambdaSpace, n);
+    Matrix pij = pi(repType, lambdaSpace, n, sigmaPermute);
     vector<vec> cj = cjSet(pij);
     if (!cj.empty()) {
       for (vec vi : cj) {
@@ -380,7 +400,7 @@ vector<vec> finalBasis(int n, const vector<int>& lambdaSpace) {
         cout << "). Computing Pmat (" << k << " of "<< nj<<")" << padding;
         cout << "\r";
         cout.flush();
-        Matrix Pmat = P(repType, lambdaSpace, n, k);
+        Matrix Pmat = P(repType, lambdaSpace, n, k, sigmaPermute);
         for (vec vi: cj) {
           Bfinal.push_back(Pmat*vi);
         }
@@ -415,14 +435,14 @@ Matrix COBmatrix(const vector<vec>& BStart, const vector<vec>& BEnd) {
   return B1TBEnd*BStartTB1;
 }
 
-void findBasisDecomps(const string& filePath, const string& fileName, const int n, const vector<int>& lambdaSpace) {
+void findBasisDecomps(const string& filePath, const string& fileName, const int n, const vector<int>& lambdaSpace, const SymGpElm& sigmaPermute) {
   stringstream totalFileName;
   totalFileName << filePath << "/" << fileName;
   ofstream file(totalFileName.str());
   file << "n: " << n << " lambdaSpace: " << lambdaSpace << endl;
   Matrix cobMatrix;
   vector<vec> Bprev, Bcurr;
-  Bcurr = finalBasis(1,lambdaSpace);
+  Bcurr = finalBasis(1,lambdaSpace, sigmaPermute);
   for (int i = 2; i <= n; ++i) {
     stringstream cobFileName;
     cobFileName << "S" << i-1 << "->S" << i << ".matrix";
@@ -435,7 +455,7 @@ void findBasisDecomps(const string& filePath, const string& fileName, const int 
       cobMatrix = readFrom(iCobFile);
     } else {
       Bprev = Bcurr;
-      Bcurr = finalBasis(i, lambdaSpace);
+      Bcurr = finalBasis(i, lambdaSpace, sigmaPermute);
 
       cobMatrix = COBmatrix(Bprev, Bcurr);
       ofstream oCobFile(cobPath.str());
@@ -453,8 +473,33 @@ void findBasisDecomps(const string& filePath, const string& fileName, const int 
 
 void test() {
   int n = 3;
-  vector<list<SymGpElm>> Sn = adjTransDecList(n);
-  cout << Sn << endl;
+  vector<int> lambdaSpace = {1,1,1};
+  vector<int> map = {1,2,3,5,6,4};
+  SymGpElm sigma(6, map);
+  SymGpElm sigmaAlt;
+  vector<LambdaTableau> basisNotPermuted = CXlambdaBasisPermuted(lambdaSpace,sigmaAlt);
+  cout << "Basis not permuted = " << endl;
+  printVec(basisNotPermuted);
+  vector<LambdaTableau> basisPermuted = CXlambdaBasisPermuted(lambdaSpace,sigma);
+  cout << endl << "Basis permuted = " << endl;
+  printVec(basisPermuted);
+  //filePathSS.str("");
+  //filePathSS << basePathStr <<  "/";
+  //sigma.printExact(filePathSS);
+  //string filePath = filePathSS.str();
+  //createDir(filePath);
+  ////vector<vec> B1 = finalBasis(1, lambdaSpace, sigma);
+  ////vector<vec> B2 = finalBasis(2, lambdaSpace, sigma);
+  //vector<vector<int>> partitions = nPartitions(2);
+  //Matrix pij = pi(partitions[0], lambdaSpace, 2, sigmaAlt);
+  //cout << "pij: " << endl;
+  //pij.prettyPrint();
+  //vector<vec> cj = cjSet(pij);
+  //cout << "cjSet = " << cj << endl;
+  ////vector<vec> B3 = finalBasis(3, lambdaSpace, sigma);
+  ////cout << "B1 = " << B1 << endl;
+  ////cout << "B2 = " << B2 << endl;
+  ////cout << "B3 = " << B3 << endl;
 }
 
 int main(int argc, const char* argv[]) {
@@ -487,16 +532,35 @@ int main(int argc, const char* argv[]) {
     n = 5;
     lambdaSpace = {3, 1, 1};
   }
-  stringstream ss;
-  ss << "factorizations/";
-  printVec(lambdaSpace, ss);
-  const string filePath = ss.str();
-  createDir(filePath);
-  ss.str("");
-  ss << "matricies-S" << n << ".txt";
-  const string fileName = ss.str();
+  stringstream basePathSS, filePathSS, fileNameSS;
+  basePathSS << "factorizations/";
+  printVec(lambdaSpace, basePathSS);
+  const string basePathStr = basePathSS.str();
+  createDir(basePathStr);
+
+  fileNameSS << "matricies-S" << n;
+  fileNameSS << ".txt";
+  const string fileName = fileNameSS.str();
+
+  //Permutations: 
+  int numTabloids = factorial(n);
+  for (size_t row = 0; row < lambdaSpace.size(); row++) {
+    numTabloids = numTabloids/factorial(lambdaSpace[row]);
+  }
+
   //test();
-  findBasisDecomps(filePath, fileName, n, lambdaSpace);
+
+  vector<list<SymGpElm>> Sn = adjTransDecList(numTabloids);
+  for (list<SymGpElm> sigmaDec : Sn) {
+    SymGpElm sigmaPermute = prod(sigmaDec);
+
+    filePathSS.str("");
+    filePathSS << basePathStr <<  "/";
+    sigmaPermute.printExact(filePathSS);
+    string filePath = filePathSS.str();
+    createDir(filePath);
+    findBasisDecomps(filePath, fileName, n, lambdaSpace, sigmaPermute);
+  }
   cout << endl;
   return 0;
 }

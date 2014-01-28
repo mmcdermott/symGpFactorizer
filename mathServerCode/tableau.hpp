@@ -75,6 +75,8 @@ std::ostream& operator<<(std::ostream& out, const LambdaTableau& lt);
 
 LambdaTableau operator*(const SymGpElm& lhs, const LambdaTableau& rhs);
 
+std::vector<LambdaTableau> CXlambdaBasisPermuted(std::vector<int> lambda, const SymGpElm& sigma);
+
 std::vector<LambdaTableau> CXlambdaBasis(std::vector<int> lambda);
 
 class CXlambda {

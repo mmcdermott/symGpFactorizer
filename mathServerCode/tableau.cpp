@@ -259,6 +259,86 @@ std::ostream& operator<<(std::ostream& out, const LambdaTableau& lt) {
   return out;
 }
 
+void permuteVec(std::vector<LambdaTableau>& basis, const SymGpElm& sigma) {
+  std::vector<LambdaTableau> basisCopy = basis;
+  for (size_t i = 1; i <= basis.size(); ++i) {
+    //std::cout << "Setting basis position " << sigma(i)-1 << " to element at old position " << i-1 << std::endl;
+    basis[sigma(i)-1] = basisCopy[i-1];
+  }
+}
+
+std::vector<LambdaTableau> CXlambdaBasisPermuted(std::vector<int> lambda, const SymGpElm& sigma) {
+  int n = 0;
+  for (std::vector<int>::iterator it=lambda.begin(); it != lambda.end(); ++it) {
+    n = n + *it;
+  }
+
+  int numRows = lambda.size();
+  std::vector<std::vector<int>> positions;
+  std::vector<std::vector<int>> lambdas;
+
+  std::vector<int> imdPos;
+  std::vector<int> imdLambda = lambda;
+  for (int i = 1; i <= numRows; ++i) {
+    imdPos.clear();
+    imdLambda = lambda;
+    if (imdLambda[i-1] != 0) {
+      imdLambda[i-1] = imdLambda[i-1] - 1;
+      imdPos.push_back(i);
+      positions.push_back(imdPos);
+      lambdas.push_back(imdLambda);
+    }
+  }
+  std::vector<int> curPos;
+  std::vector<int> curLambda;
+  std::vector<std::vector<int>> imdPositions;
+  std::vector<std::vector<int>> imdLambdas;
+  std::vector<bool> seen;
+  for (int i = 2; i <= n; ++i) {
+    imdPositions.clear();
+    imdLambdas.clear();
+    for (size_t i = 0; i < positions.size(); ++i) {
+      curPos    = positions[i];
+      curLambda = lambdas[i];
+      for (int i = 1; i <= numRows; ++i) {
+        imdPos = curPos;
+        imdLambda = curLambda;
+        if (imdLambda[i-1] != 0) {
+          imdLambda[i-1] = imdLambda[i-1] - 1;
+          imdPos.push_back(i);
+          imdPositions.push_back(imdPos);
+          imdLambdas.push_back(imdLambda);
+        }
+      }
+    }
+
+    positions.clear();
+    lambdas.clear();
+    seen.clear();
+    seen.assign(imdLambdas.size(),false);
+    for (size_t j = 0; j < imdLambdas.size(); ++j) {
+      if (!seen[j]) {
+        curLambda = imdLambdas[j];
+        for (size_t i = j; i < imdLambdas.size(); ++i) {
+          if (imdLambdas[i] == curLambda) {
+            seen[i] = true;
+            lambdas.push_back(curLambda);
+            positions.push_back(imdPositions[i]);
+          }
+        }
+      }
+    }
+  }
+
+  std::vector<LambdaTableau> basis;
+  for (size_t i = 0; i < positions.size(); ++i) {
+    basis.push_back(LambdaTableau(positions[i]));
+  }
+  //permute: 
+  permuteVec(basis, sigma);
+  return basis;
+}
+
 std::vector<LambdaTableau> CXlambdaBasis(std::vector<int> lambda) {
   int n = 0;
   for (std::vector<int>::iterator it=lambda.begin(); it != lambda.end(); ++it) {
