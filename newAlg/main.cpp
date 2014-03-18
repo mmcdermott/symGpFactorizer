@@ -438,57 +438,15 @@ void findBasisDecomps(const path& filePath, const string& fileName, const int n,
 }
 
 void test() {
-  Matrix pij = pi({6,1,1},{6,1,1},8);
-  //int tn = 10;
-  //vector<int> lambdaSpace = {tn-2,1,1};
-  //int n = 3;
-  ////vector<vec> Bfinal;
-  //vector<vector<int>> partitions = nPartitions(n);
-  //int nj = fLambda(partitions[2], n);
-  //cout << "repType = " << partitions[2] << endl;
-  //cout << "n! = " << factorial(n) << endl;
-  //int hookP = 1;
-  //int numRows = partitions[2].size();
-  //for (int row=1; row <= numRows; ++row) {
-  //  int rowL = partitions[2][row-1];
-  //  for (int i = 1; i <= rowL; ++i) {
-  //    int hookL = 1 + (rowL - i);
-  //    int height = 0;
-  //    for (int nextRow=row; nextRow < numRows; ++nextRow) {
-  //      if (partitions[2][nextRow] >= i) {
-  //        ++height;
-  //      } else {
-  //        break;
-  //      }
-  //    }
-  //    hookL += height;
-  //    hookP *= hookL;
-  //  }
-  //}
-  //cout << "hookP = " << hookP << endl;
-  //cout << "nj = " << nj << endl;
-  //for (vector<int> repType : partitions) {
-  //  int nj = fLambda(repType, n);
-  //  cout << "nj = " << nj << endl;
-  //  Matrix pij = pi(repType, lambdaSpace, n);
-  //  cout << "pij size: " << pij.rows() << "x" << pij.cols() << endl;
-  //  vector<vec> cj = cjSet(pij);
-  //  cout << "cj set size: " << cj.size() << endl;
-  //  for (vec vi : cj) {
-  //    Bfinal.push_back(vi);
-  //    for (size_t k = 2; k <= nj; ++k) {
-  //      Bfinal.push_back(P(repType, lambdaSpace, n, k)*vi);
-  //    }
-  //  }
-  //  cout << "Bfinal.size() = " << Bfinal.size() << endl;
-  //}
-  //cout << "Dim: " << Bfinal.size() << endl;
+  vector<LambdaTableau> basis = CXlambdaBasis({2,1,1});
+  printVec(basis);
 }
 
 int main(int argc, const char* argv[]) {
   int n;
   vector<int> lambdaSpace;
   if (argc == 2) {
+    //TODO: Add thread safe atoi here (strtol)
     n = atoi(argv[1]);
     lambdaSpace = {n-2, 1, 1};
   } else if (argc > 2) {
@@ -523,7 +481,7 @@ int main(int argc, const char* argv[]) {
   ss.str("");
   ss << "matricies-S" << n << ".txt";
   const string fileName = ss.str();
-  //test();
-  findBasisDecomps(filePath, fileName, n, lambdaSpace);
+  test();
+  //findBasisDecomps(filePath, fileName, n, lambdaSpace);
   return 0;
 }
