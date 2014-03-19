@@ -8,29 +8,29 @@
 #include "symGp.hpp"
 #include "tableau.hpp"
 #include "Matrix.hpp"
+#include "Vector.hpp"
 #include "printUtils.cpp"
 using namespace std;
 
 bool canRead(ifstream& ifile) {
-  if (ifile) {
-    if ((ifile.peek() != ifstream::traits_type::eof())) {
+  if (ifile)
+    if ((ifile.peek() != ifstream::traits_type::eof()))
       return true;
-    } else {
-      //cout << "File is empty!" << endl;
-    }
-  } else {
-    //cout << "File doesn't exist!" << endl;
-  }
   return false;
-  //return (ifile && (ifile.peek() != ifstream::traits_type::eof()));
 }
-
-//void createDir(const path& dir) {
-//  if (!boost::filesystem::exists(dir)) boost::filesystem::create_directory(dir);
-//}
 
 void createDir(const string& dir) {
   mkdir(dir.c_str(), 0755);
+}
+
+Matrix COBmatrix(const vector<vec>& Bf) {
+  size_t dim = Bf.size();
+  Matrix BfTB1(dim,dim);
+  for (size_t i = 0; i < dim; ++i) {
+    BfTB1.setCol(i, Bf[i]);
+  }
+  BfTB1.roundZero();
+  return BfTB1;
 }
 
 Matrix computeMatrixAdj(const SymGpElm& adjTrans, 
@@ -196,12 +196,27 @@ Matrix Pd(const vector<int>& lambdaRep, const vector<int>& lambdaSpace, int n, i
 Matrix P(const vector<int>& lambdaRep, const vector<int>& lambdaSpace, int n, int mu) {
   // if g = fac(n) and nj = fLambda(lambdaRep, n), then nj/g =
   // 1/hookProduct(lambdaRep)
+  //stringstream fileName;
+  //fileName << "Ps/" << n << "/";
+  //createDir(fileName.str());
+  //fileName << mu << "/";
+  //createDir(fileName.str());
+  //printVec(lambdaSpace, fileName);
+  //createDir(fileName.str());
+  //fileName << "/" ;
+  //printVec(lambdaRep, fileName);
+  //fileName << ".matrix";
+  //ifstream ifile(fileName.str());
+  //if (canRead(ifile))
+  //  return readFrom(ifile);
   double hookP = hookProduct(lambdaRep);
-  return (1/hookP)*Pd(lambdaRep, lambdaSpace, n, mu);
+  Matrix pd = (1/hookP)*Pd(lambdaRep, lambdaSpace, n, mu);
+  //writeToFile(fileName.str(),pd);
+  return pd;
 }
 
 Matrix pi(const vector<int>& lambdaRep, const vector<int>& lambdaSpace, int n) {
-  stringstream fileName;
+  //stringstream fileName;
   //fileName << "pijs/" << n << "/";
   //createDir(fileName.str());
   //printVec(lambdaSpace, fileName);
@@ -306,6 +321,14 @@ vector<int> repDecomp(int n, vector<int> lambda) {
 vector<vec> cjSetGS(const Matrix& pij) {
   vector<vec> cjSet;
   Matrix grammedCols = pij.gramSchmidtCols();
+
+  //cout << endl << endl;
+  //cout << "Pij: " << endl;
+  //pij.prettyPrint();
+  //cout << "GrammedCols = " << endl;
+  //grammedCols.prettyPrint();
+  //cout << endl << endl;
+
   for (int col = 0; col < grammedCols.cols(); ++col) {
     vec column = grammedCols.getCol(col);
     if (!isZero(column)) {
@@ -339,35 +362,36 @@ int sum(const vector<int>& lambda) {
   return sum;
 }
 
-bool strictlyDominates(const vector<int>& lambda1, const vector<int>& lambda2) {
-  int n1 = sum(lambda1);
-  int n2 = sum(lambda2);
-  if (n1 != n2) return false;
-  int left1 = min(n1,n2);
-  int left2 = left1;
-  
-  size_t lim = min(lambda1.size(), lambda2.size());
-  for (size_t i = 0; i < lim; i++) {
-    if (min(lambda1[i],left1) > min(lambda2[i],left2))
-      return true;
-    left1 -= min(lambda1[i],left1);
-    left2 -= min(lambda2[i],left2);
+bool weaklyDominates(const vector<int>& mu, const vector<int>&lambda) {
+  const int muk = mu.size();
+  const int lambdak = lambda.size();
+  int carry = 0;
+  if (muk > lambdak) 
+    return false;
+  for (int i = lambdak; i >= 1; i--) {
+    if (i > muk)
+      carry += lambda[i-1];
+    else 
+      carry += lambda[i-1]-mu[i-1];
+    if (carry < 0)
+      return false;
   }
-  return false;
+  return true;
 }
 
 vector<vec> finalBasis(int n, const vector<int>& lambdaSpace) {
   vector<vec> Bfinal;
   vector<vector<int>> partitions = nPartitions(n);
-  size_t count = 1;
+  size_t count = 0;
   size_t total = partitions.size();
   string padding = "______________________________________";
   for (vector<int> repType : partitions) {
-    //if (strictlyDominates(lambdaSpace,repType)) {
-    //  //cout << "lambdaSpace = " << lambdaSpace << endl;
-    //  //cout << "repType = " << repType << endl;
-    //  continue;
-    //}
+    count++;
+    if (!weaklyDominates(repType,lambdaSpace)) {
+      //cout << "lambdaSpace = " << lambdaSpace << endl;
+      //cout << "repType = " << repType << endl;
+      continue;
+    }
     int nj = fLambda(repType, n);
     cout << padding << "repType " << repType << "(" << count << " of " << total;
     cout << "). Computing pij (1 of "<< nj<<")" << padding;
@@ -375,6 +399,14 @@ vector<vec> finalBasis(int n, const vector<int>& lambdaSpace) {
     cout.flush();
     Matrix pij = pi(repType, lambdaSpace, n);
     vector<vec> cj = cjSet(pij);
+
+    //Matrix earlyCj = COBmatrix(cj);
+    ////cout << endl << "pij: " << endl; 
+    ////pij.prettyPrint();
+    //cout << endl << "Cj-Set:" << endl;
+    //earlyCj.prettyPrint();
+    //cout << endl;
+
     if (!cj.empty()) {
       for (vec vi : cj) {
         Bfinal.push_back(vi);
@@ -395,19 +427,8 @@ vector<vec> finalBasis(int n, const vector<int>& lambdaSpace) {
       //cout << "strictlyDominates(lambdaSpace, repType): ";
       //cout << strictlyDominates(lambdaSpace,repType) << endl << endl;
     }
-    count++;
   }
   return Bfinal;
-}
-
-Matrix COBmatrix(const vector<vec>& Bf) {
-  size_t dim = Bf.size();
-  Matrix BfTB1(dim,dim);
-  for (size_t i = 0; i < dim; ++i) {
-    BfTB1.setCol(i, Bf[i]);
-  }
-  BfTB1.roundZero();
-  return BfTB1;
 }
 
 Matrix COBmatrix(const vector<vec>& BStart, const vector<vec>& BEnd) {
@@ -456,9 +477,94 @@ void findBasisDecomps(const string& filePath, const string& fileName, const int 
 }
 
 void test() {
-  int n = 3;
-  vector<list<SymGpElm>> Sn = adjTransDecList(n);
-  cout << Sn << endl;
+  //Matrix testMatrix = Matrix(9,9);
+  //vec col = {40320,40320,40320,40320,40320,40320,40320,40320,40320};
+  //for (int i = 0; i < 9; i++)
+  //  testMatrix.setCol(i,col);
+  //testMatrix.prettyPrint();
+  ////cout << abs((scalar) 9*pow(40320,2)) << endl;
+  ////cout << eucInnerProd(col,col);
+  //Matrix grammedCols = testMatrix.gramSchmidtCols();
+  //grammedCols.prettyPrint();
+
+  vector<int> lambdaSpace = {8,1};
+  
+  vector<vec> B8 = finalBasis(8, lambdaSpace);
+  cout << endl << "Computed B_8!" << endl;
+  Matrix B8M = COBmatrix(B8);
+  cout << "Here it is! " << endl;
+  B8M.prettyPrint();
+  cout << endl << endl << endl;
+
+  vector<vec> B9 = finalBasis(9, lambdaSpace);
+  //
+  //============================================================================
+  //COMPUTING finalBasis(9,lambdaSpace)=========================================
+  //============================================================================
+  //
+  //int n = 9;
+  //vector<vec> B9;
+  //vector<vector<int>> partitions = nPartitions(n);
+  //size_t count = 0;
+  //size_t total = partitions.size();
+  //string padding = "______________________________________";
+  //for (vector<int> repType : partitions) {
+  //  count++;
+  //  if (!weaklyDominates(repType,lambdaSpace)) {
+  //    //cout << "lambdaSpace = " << lambdaSpace << endl;
+  //    //cout << "repType = " << repType << endl;
+  //    continue;
+  //  }
+  //  int nj = fLambda(repType, n);
+  //  cout << padding << "repType " << repType << "(" << count << " of " << total;
+  //  cout << "). Computing pij (1 of "<< nj<<")" << padding;
+  //  cout << "\r";
+  //  cout.flush();
+  //  Matrix pij = pi(repType, lambdaSpace, n);
+  //  vector<vec> cj = cjSet(pij);
+
+  //  Matrix earlyCj = COBmatrix(cj);
+  //  cout << endl << "Cj-Set:" << endl;
+  //  earlyCj.prettyPrint();
+  //  cout << endl;
+
+  //  if (!cj.empty()) {
+  //    for (vec vi : cj) {
+  //      B9.push_back(vi);
+  //    }
+  //    for (size_t k = 2; k <= nj; ++k) {
+  //      cout << padding << "repType " << repType << "(" << count << " of " << total;
+  //      cout << "). Computing Pmat (" << k << " of "<< nj<<")" << padding;
+  //      cout << "\r";
+  //      cout.flush();
+  //      cout << endl << "hookProduct: " << hookProduct(repType) << endl;
+  //      Matrix Pmat = P(repType, lambdaSpace, n, k);
+  //      for (vec vi: cj) {
+  //        B9.push_back(Pmat*vi);
+  //      }
+  //    }
+  //  } else {
+  //    cout << endl << endl << "repType: " << repType << endl;
+  //    cout << "lambdaSpace: " << lambdaSpace << endl;
+  //    cout << "weaklyDominates(lambdaSpace, repType): ";
+  //    cout << weaklyDominates(lambdaSpace,repType) << endl << endl;
+  //  }
+  //}
+  //return Bfinal;
+  //
+  //============================================================================
+  //COMPUTING finalBasis(9,lambdaSpace)=========================================
+  //============================================================================
+  //
+  
+  cout << endl << "Computed B_9!" << endl;
+  Matrix B9M = COBmatrix(B9);
+  cout << "Here it is! " << endl;
+  B9M.prettyPrint();
+
+  //Matrix cobMatrix = COBmatrix(B8, B9);
+  //cout << endl << "Computed COB matrix!" << endl;
+  //cobMatrix.prettyPrint();
 }
 
 int main(int argc, const char* argv[]) {

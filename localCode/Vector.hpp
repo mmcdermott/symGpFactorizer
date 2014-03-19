@@ -4,7 +4,7 @@
 #include <vector>
 #include <math.h>
 
-typedef float scalar;
+typedef double scalar;
 typedef std::vector<scalar> vec;
 
 scalar norm(const vec& v);

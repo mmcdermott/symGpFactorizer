@@ -1,11 +1,9 @@
 #include <math.h>
 #include <vector>
 #include <algorithm>
+#include <iostream>
 #include "Vector.hpp"
 #define ROUND_CUTOFF 0.001
-
-typedef float scalar;
-typedef std::vector<scalar> vec;
 
 scalar norm(const vec& v) {
   scalar sum = 0;
@@ -24,10 +22,15 @@ scalar eucInnerProd(const vec& v1, const vec& v2) {
   scalar sum = 0;
   vec::const_iterator it1 = v1.begin();
   vec::const_iterator it2 = v2.begin();
-  for (; it1 != v1.end(); ++it1, ++it2)
+  for (; it1 != v1.end(); ++it1, ++it2) {
     sum += (*it1) * (*it2);
-  if (abs(sum) < ROUND_CUTOFF)
+    //std::cout << "Sum = " << sum << std::endl;
+  }
+  if (fabs(sum) < ROUND_CUTOFF) {
+    //std::cout << "Sum = " << sum << " abs(sum) = " << fabs(sum) << std::endl;
     sum = 0;
+  }
+  //std::cout << "Sum = " << sum << std::endl;
   return sum;
 }
 
@@ -72,7 +75,7 @@ vec proj(const vec& base, const vec& v) {
   if (isZero(base))
     return base;
   else 
-    return ((eucInnerProd(base, v)/pow(norm(base),2)) * base);
+    return ((eucInnerProd(base, v)/eucInnerProd(base,base)) * base);
 }
 
 void normalize(vec& v) {
