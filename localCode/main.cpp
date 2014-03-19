@@ -453,7 +453,8 @@ void findBasisDecomps(const string& filePath, const string& fileName, const int 
     cobFileName << "S" << i-1 << "->S" << i << ".matrix";
     stringstream cobPath;
     cobPath << filePath << "/" << cobFileName.str();
-    cout << "cobPath.string: " << cobPath.str() << endl;
+    string padding = "                                                        ";
+    cout << "cobPath.string: " << cobPath.str() << padding << endl;
     ifstream iCobFile(cobPath.str());
     if (iCobFile) {
       cout << "iCobFile found!" << endl;
