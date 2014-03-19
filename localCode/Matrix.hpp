@@ -7,6 +7,8 @@
 #include <iostream>
 #include "Vector.hpp"
 
+#define ROUND_CUTOFF 0.001 //Roundoff's becoming quite a problem. Make it not so. TODO
+
 //TODO: Make this a template. 
 class Matrix {
   public:
@@ -74,6 +76,7 @@ class Matrix {
     void prettyPrint() const;
 
     //Rounding: 
+    void round(scalar cutoff = ROUND_CUTOFF);
     void roundZero();
 
     //Silly Wrappers: TODO: Make these not needed.

@@ -4,7 +4,6 @@
 #include <sstream>
 #include <math.h>
 
-#define ROUND_CUTOFF 0.001
 //Constructors: 
 Matrix::Matrix() 
   :numRows_(1), numCols_(1), data_(new scalar[1])
@@ -143,8 +142,11 @@ bool Matrix::orthogonal(bool debug = false) const {
     for (size_t j = i+1; j < this->numCols_; ++j) {
       if (!::orthogonal(this->getCol(i), this->getCol(j))) {
         if (debug) {
-          std::cout << "MATRIX NOT ORTHOGONAL" << std::endl;
-          this->prettyPrint();
+          std::cout << "MATRIX NOT ORTHOGONAL:" << std::endl;
+          std::cout << "  Columns " << i << " and " << j;
+          std::cout << " fail with inner product: ";
+          std::cout << ::eucInnerProd(this->getCol(i),this->getCol(j));
+          std::cout << std::endl;
         }
         return false;
       }
@@ -342,11 +344,22 @@ void Matrix::prettyPrint() const {
 }
 
 //Rounding:
+void Matrix::round(scalar cutoff) {// = ROUND_CUTOFF) {
+  for (size_t i = 0; i < this->rows(); ++i) {
+    for (size_t j = 0; j < this->cols(); ++j) {
+      if (fabs(::round((*this)(i,j))-(*this)(i,j)) <= cutoff) {
+        (*this)(i,j) = ::round((*this)(i,j));
+        if ((*this)(i,j) == -0)
+          (*this)(i,j) = 0;
+      }
+    }
+  }
+}
 
 void Matrix::roundZero() {
   for (size_t i = 0; i < this->rows(); ++i) 
     for (size_t j = 0; j < this->cols(); ++j) 
-      if (fabs((*this)(i,j)) < ROUND_CUTOFF)// && -(*this)(i,j) < ROUND_CUTOFF) 
+      if (fabs((*this)(i,j)) < ROUND_CUTOFF) 
         (*this)(i,j) = 0;
 }
 

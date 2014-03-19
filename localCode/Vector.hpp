@@ -4,10 +4,12 @@
 #include <vector>
 #include <math.h>
 
-typedef double scalar;
+typedef long double scalar;
 typedef std::vector<scalar> vec;
 
 scalar norm(const vec& v);
+
+void round(vec& v);
 
 void roundZero(vec& v);
 
