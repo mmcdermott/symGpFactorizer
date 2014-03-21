@@ -1,7 +1,8 @@
 CXX = g++
 WARNINGFLAGS = #-pedantic -Wall
 LINKERFLAGS = #
-CXXFLAGS = -std=c++11 -O2 $(WARNINGFLAGS) $(LINKERFLAGS)
+OPTIMIZATION = #-O2
+CXXFLAGS = -std=c++11 $(OPTIMIZATION) $(WARNINGFLAGS) $(LINKERFLAGS)
 
 TARGETS = cobFactorizer
 
@@ -12,6 +13,9 @@ cobFactorizer: symGp.o tableau.o Vector.o Matrix.o main.o
 
 profiler: symGp.o tableau.o Vector.o Matrix.o main.o
 	$(CXX) $^ $(CXXFLAGS) -pg -o cobFactorizerProfilable
+
+rationals: Rational.o rationalTest.o
+	$(CXX) $^ $(CXXFLAGS) -o rationalTest
 
 clean: 
 	rm -f *.o cobFactorizer

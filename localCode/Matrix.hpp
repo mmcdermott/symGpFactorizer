@@ -7,7 +7,7 @@
 #include <iostream>
 #include "Vector.hpp"
 
-#define ROUND_CUTOFF 0.001 //Roundoff's becoming quite a problem. Make it not so. TODO
+#define ROUND_CUTOFF 0.003 //Roundoff's becoming quite a problem. Make it not so. TODO
 
 //TODO: Make this a template. 
 class Matrix {
