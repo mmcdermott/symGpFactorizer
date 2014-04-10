@@ -352,6 +352,10 @@ void Matrix::round(scalar cutoff) {// = ROUND_CUTOFF) {
         if ((*this)(i,j) == -0)
           (*this)(i,j) = 0;
       }
+      //Round to precision
+      //(*this)(i,j) = floor((*this)(i,j)*(1.0/(.001))+0.5)*(.001);
+      //(*this)(i,j) = ::round((*this)(i,j)*(1.0/(.001)))*(.001);
+      //scalar temp = floor((*this)(i,j)*(1.0/(.00001))+0.5)*(.00001);
     }
   }
 }

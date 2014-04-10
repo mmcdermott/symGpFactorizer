@@ -492,60 +492,25 @@ void findBasisDecomps(const string& filePath, const string& fileName, const int 
 }
 
 void test() {
-  int n = 9;
-  vector<int> lambdaSpace = {6,3};
-  vector<vec> B9;
-  vector<vector<int>> partitions = nPartitions(n);
-  size_t count = 0;
-  size_t total = partitions.size();
-  string padding = "______________________________________";
-  for (vector<int> repType : partitions) {
-    count++;
-    if (!weaklyDominates(repType,lambdaSpace)) {
-      //cout << "lambdaSpace = " << lambdaSpace << endl;
-      //cout << "repType = " << repType << endl;
-      continue;
-    }
-    int nj = fLambda(repType, n);
-    cout << padding << "repType " << repType << "(" << count << " of " << total;
-    cout << "). Computing pij (1 of "<< nj<<")" << padding;
-    cout << "\r";
-    cout.flush();
-    Matrix pij = pi(repType, lambdaSpace, n);
-    vector<vec> cj = cjSet(pij);
+  int n = 6;
+  int k = 2;
+  vector<int> lambdaSpace = {n-k,k};
+  string fileName = "JucysMurphyTests";
+  ofstream file(fileName);
+  file << "n: " << n << " lambdaSpace: " << lambdaSpace << endl;
 
-    Matrix earlyCj = COBmatrix(cj);
-    cout << endl << "pij: " << endl; 
-    pij.prettyPrint();
-    cout << endl << "Cj-Set:" << endl;
-    earlyCj.prettyPrint();
-    cout << endl;
+  vector<vec> Bcurr;
+  Matrix cobMatrix;
+  for (int i = 2; i <= n; ++i) {
+    Bcurr = finalBasis(i, lambdaSpace);
 
-    if (!cj.empty()) {
-      for (vec vi : cj) {
-        B9.push_back(vi);
-      }
-      for (size_t k = 2; k <= nj; ++k) {
-        cout << padding << "repType " << repType << "(" << count << " of " << total;
-        cout << "). Computing Pmat (" << k << " of "<< nj<<")" << padding;
-        cout << "\r";
-        cout.flush();
-        Matrix Pmat = P(repType, lambdaSpace, n, k);
-        for (vec vi: cj) {
-          B9.push_back(Pmat*vi);
-        }
-      }
-    } else {
-      cout << endl << endl << "repType: " << repType << endl;
-      cout << "lambdaSpace: " << lambdaSpace << endl;
-      cout << "weaklyDominates(lambdaSpace, repType): ";
-      cout << weaklyDominates(lambdaSpace,repType) << endl << endl;
-    }
+    cobMatrix = COBmatrix(Bcurr);
+
+    file << endl << "B1" << " -> B" << i << ": " << endl;
+    writeTo(file,cobMatrix);
+    file << endl;
+    //cobMatrix.prettyPrintTo(file);
   }
-
-  //Result!
-  Matrix B9M = COBmatrix(B9);
-  B9M.prettyPrint();
 }
 
 int main(int argc, const char* argv[]) {

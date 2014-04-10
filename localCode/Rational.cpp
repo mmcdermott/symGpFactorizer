@@ -155,6 +155,10 @@ Rational abs(const Rational& x) {
   return Rational(abs(x.numerator()),x.denominator());
 }
 
+Rational fabs(const Rational& x) {
+  return abs(x);
+}
+
 //Crappy helper function: eliminate me!
 longS pow(const longS& base, size_t exp) {
   longS result = base;
@@ -182,3 +186,118 @@ std::ostream& operator<<(std::ostream& out, const Rational& q) {
   return out;
 }
 
+//Integral Comparison
+bool operator==(const longUS& lhs, const Rational& rhs) {
+  return Rational(lhs) == rhs;
+}
+bool operator!=(const longUS& lhs, const Rational& rhs) {
+  return Rational(lhs) != rhs;
+}
+bool operator< (const longUS& lhs, const Rational& rhs) {
+  return Rational(lhs) < rhs;
+}
+bool operator<=(const longUS& lhs, const Rational& rhs) {
+  return Rational(lhs) <= rhs;
+}
+bool operator> (const longUS& lhs, const Rational& rhs) {
+  return Rational(lhs) > rhs;
+}
+bool operator>=(const longUS& lhs, const Rational& rhs) {
+  return Rational(lhs) >= rhs;
+}
+
+bool operator==(const longS& lhs, const Rational& rhs) {
+  return Rational(lhs) == rhs;
+}
+bool operator!=(const longS& lhs, const Rational& rhs) {
+  return Rational(lhs) != rhs;
+}
+bool operator< (const longS& lhs, const Rational& rhs) {
+  return Rational(lhs) < rhs;
+}
+bool operator<=(const longS& lhs, const Rational& rhs) {
+  return Rational(lhs) <= rhs;
+}
+bool operator> (const longS& lhs, const Rational& rhs) {
+  return Rational(lhs) > rhs;
+}
+bool operator>=(const longS& lhs, const Rational& rhs) {
+  return Rational(lhs) >= rhs;
+}
+
+bool operator==(const Rational& lhs, const longUS& rhs) { 
+  return lhs == rhs;
+}
+bool operator!=(const Rational& lhs, const longUS& rhs) { 
+  return lhs != rhs;
+}
+bool operator< (const Rational& lhs, const longUS& rhs) { 
+  return lhs > rhs;
+}
+bool operator<=(const Rational& lhs, const longUS& rhs) { 
+  return lhs >= rhs;
+}
+bool operator> (const Rational& lhs, const longUS& rhs) { 
+  return lhs < rhs;
+}
+bool operator>=(const Rational& lhs, const longUS& rhs) { 
+  return lhs <= rhs;
+}
+
+bool operator==(const Rational& lhs, const longS& rhs) {
+  return lhs == rhs;
+}
+bool operator!=(const Rational& lhs, const longS& rhs) {
+  return lhs != rhs;
+}
+bool operator< (const Rational& lhs, const longS& rhs) {
+  return lhs > rhs;
+}
+bool operator<=(const Rational& lhs, const longS& rhs) {
+  return lhs >= rhs;
+}
+bool operator> (const Rational& lhs, const longS& rhs) {
+  return lhs < rhs;
+}
+bool operator>=(const Rational& lhs, const longS& rhs) {
+  return lhs <= rhs;
+}
+
+// Float Comparisons:
+bool operator==(const floatT lhs, const Rational& rhs) {
+  return lhs == rhs.evaluate();
+}
+bool operator!=(const floatT lhs, const Rational& rhs) {
+  return lhs != rhs.evaluate();
+}
+bool operator< (const floatT lhs, const Rational& rhs) {
+  return lhs < rhs.evaluate();
+}
+bool operator<=(const floatT lhs, const Rational& rhs) {
+  return lhs <= rhs.evaluate();
+}
+bool operator> (const floatT lhs, const Rational& rhs) {
+  return lhs > rhs.evaluate();
+}
+bool operator>=(const floatT lhs, const Rational& rhs) {
+  return lhs >= rhs.evaluate();
+}
+// Reversed: 
+bool operator==(const Rational& rhs, const floatT lhs) {
+  return lhs == rhs;
+}
+bool operator!=(const Rational& rhs, const floatT lhs) {
+  return lhs != rhs;
+}
+bool operator< (const Rational& rhs, const floatT lhs) {
+  return lhs > rhs;
+}
+bool operator<=(const Rational& rhs, const floatT lhs) {
+  return lhs >= rhs;
+}
+bool operator> (const Rational& rhs, const floatT lhs) {
+  return lhs < rhs;
+}
+bool operator>=(const Rational& rhs, const floatT lhs) {
+  return lhs <= rhs;
+}

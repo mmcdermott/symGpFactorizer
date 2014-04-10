@@ -3,8 +3,11 @@
 
 #include <iostream>
 
-typedef unsigned long long int longUS;
-typedef long long int longS;
+typedef unsigned int longUS;
+typedef int longS;
+
+//typedef unsigned long long int longUS;
+//typedef long long int longS;
 typedef long double floatT;
 
 class Rational {
@@ -63,6 +66,49 @@ class Rational {
 std::ostream& operator<<(std::ostream& out, const Rational& q);
 
 Rational abs(const Rational& x);
+Rational fabs(const Rational& x);
 Rational pow(const Rational& x, const size_t exp);
 longUS gcd(longUS a, longUS b);
+
+bool operator==(const longUS& lhs, const Rational& rhs);
+bool operator!=(const longUS& lhs, const Rational& rhs);
+bool operator< (const longUS& lhs, const Rational& rhs);
+bool operator<=(const longUS& lhs, const Rational& rhs);
+bool operator> (const longUS& lhs, const Rational& rhs);
+bool operator>=(const longUS& lhs, const Rational& rhs);
+
+bool operator==(const longS& lhs, const Rational& rhs);
+bool operator!=(const longS& lhs, const Rational& rhs);
+bool operator< (const longS& lhs, const Rational& rhs);
+bool operator<=(const longS& lhs, const Rational& rhs);
+bool operator> (const longS& lhs, const Rational& rhs);
+bool operator>=(const longS& lhs, const Rational& rhs);
+
+bool operator==(const Rational& lhs, const longUS& rhs);
+bool operator!=(const Rational& lhs, const longUS& rhs);
+bool operator< (const Rational& lhs, const longUS& rhs);
+bool operator<=(const Rational& lhs, const longUS& rhs);
+bool operator> (const Rational& lhs, const longUS& rhs);
+bool operator>=(const Rational& lhs, const longUS& rhs);
+
+bool operator==(const Rational& lhs, const longS& rhs);
+bool operator!=(const Rational& lhs, const longS& rhs);
+bool operator< (const Rational& lhs, const longS& rhs);
+bool operator<=(const Rational& lhs, const longS& rhs);
+bool operator> (const Rational& lhs, const longS& rhs);
+bool operator>=(const Rational& lhs, const longS& rhs);
+
+bool operator==(const floatT lhs, const Rational& rhs);
+bool operator!=(const floatT lhs, const Rational& rhs);
+bool operator< (const floatT lhs, const Rational& rhs);
+bool operator<=(const floatT lhs, const Rational& rhs);
+bool operator> (const floatT lhs, const Rational& rhs);
+bool operator>=(const floatT lhs, const Rational& rhs);
+
+bool operator==(const Rational& lhs, const floatT rhs);
+bool operator!=(const Rational& lhs, const floatT rhs);
+bool operator< (const Rational& lhs, const floatT rhs);
+bool operator<=(const Rational& lhs, const floatT rhs);
+bool operator> (const Rational& lhs, const floatT rhs);
+bool operator>=(const Rational& lhs, const floatT rhs);
 #endif
